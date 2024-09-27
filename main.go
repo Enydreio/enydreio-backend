@@ -18,11 +18,11 @@ type Application struct {
 	Logo        string `json:"logo"`
 }
 
-var db *gorm.DB
+var dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Vienna", os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
+var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 func main() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Vienna", os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
-	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
 	db.AutoMigrate(&Application{})
 	fs := http.FileServer(http.Dir("dist"))
 	http.Handle("/", fs)
