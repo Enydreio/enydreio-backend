@@ -11,7 +11,6 @@ import (
 
 type Application struct {
 	gorm.Model
-	ID          uint   `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Url         string `json:"url"`
