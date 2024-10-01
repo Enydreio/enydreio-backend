@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type Application struct {
@@ -23,8 +24,11 @@ var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 func main() {
 
 	db.AutoMigrate(&Application{})
-	http.HandleFunc("^(?!\\/api).*\n", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "dist/index.html")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/api") {
+			http.ServeFile(w, r, "dist/index.html")
+			return
+		}
 	})
 	http.HandleFunc("/api/create-application", CreateApplication)
 	http.HandleFunc("/api/delete-application", DeleteApplication)
