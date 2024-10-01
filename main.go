@@ -23,12 +23,13 @@ var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 func main() {
 
 	db.AutoMigrate(&Application{})
-	fs := http.FileServer(http.Dir("dist"))
-	http.Handle("/", fs)
-	http.HandleFunc("/api/create-application", createApplication)
-	http.HandleFunc("/api/delete-application", deleteApplication)
-	http.HandleFunc("/api/list-applications", listApplications)
-	http.HandleFunc("/api/edit-application", editApplication)
+	http.HandleFunc("^(?!\\/api).*\n", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "dist/index.html")
+	})
+	http.HandleFunc("/api/create-application", CreateApplication)
+	http.HandleFunc("/api/delete-application", DeleteApplication)
+	http.HandleFunc("/api/list-applications", ListApplications)
+	http.HandleFunc("/api/edit-application", EditApplication)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil || errDb != nil {
@@ -36,7 +37,7 @@ func main() {
 	}
 }
 
-func createApplication(w http.ResponseWriter, r *http.Request) {
+func CreateApplication(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -55,7 +56,7 @@ func createApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func deleteApplication(w http.ResponseWriter, r *http.Request) {
+func DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -81,7 +82,7 @@ func deleteApplication(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
-func listApplications(w http.ResponseWriter, r *http.Request) {
+func ListApplications(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -101,7 +102,7 @@ func listApplications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func editApplication(w http.ResponseWriter, r *http.Request) {
+func EditApplication(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
