@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"os"
-	"strings"
+	"path/filepath"
 )
 
 type Application struct {
@@ -24,12 +24,7 @@ var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 func main() {
 
 	db.AutoMigrate(&Application{})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/api") {
-			http.ServeFile(w, r, "dist/index.html")
-			return
-		}
-	})
+	http.HandleFunc("/", ServeWebsite)
 	http.HandleFunc("/api/create-application", CreateApplication)
 	http.HandleFunc("/api/delete-application", DeleteApplication)
 	http.HandleFunc("/api/list-applications", ListApplications)
@@ -40,7 +35,18 @@ func main() {
 		return
 	}
 }
+func ServeWebsite(w http.ResponseWriter, r *http.Request) {
+	website := "dist"
+	fallbackFile := "index.html"
+	requestedFile := filepath.Join(website, r.URL.Path)
+	_, err := os.Stat(requestedFile)
+	if os.IsNotExist(err) {
+		http.ServeFile(w, r, filepath.Join(website, fallbackFile))
+		return
+	}
 
+	http.ServeFile(w, r, requestedFile)
+}
 func CreateApplication(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
