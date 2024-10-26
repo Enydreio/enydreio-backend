@@ -20,6 +20,7 @@ func ServeWebsite(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, requestedFile)
 }
 func CreateApplication(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -39,6 +40,7 @@ func CreateApplication(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func DeleteApplication(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -65,6 +67,7 @@ func DeleteApplication(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 func ListApplications(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -85,6 +88,7 @@ func ListApplications(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func EditApplication(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
