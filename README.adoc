@@ -1,17 +1,26 @@
 = Enydreio backend
 
-== Create Application
+== Environment Variables
+
+* POSTGRES_HOST
+* POSTGRES_USER
+* POSTGRES_PASSWORD
+* POSTGRES_DB
+
+== Endpoints
+
+=== Create Application
 
 POST /api/create-application
 
-== List Applications
+=== List Applications
 
 GET /api/list-applications
 
-== Edit Application
+=== Edit Application
 
 PUT /api/edit-application
 
-== Delete Application
+=== Delete Application
 
 DELETE /api/delete-application?id=
