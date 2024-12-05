@@ -46,8 +46,14 @@ func GetOutboundIP() net.IP {
 	return localAddr.IP
 }
 
-func ScanKubeApps() {
-	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+func ScanKubeApps(isExtern bool) {
+	var mode string
+	if isExtern {
+		mode = os.Getenv("KUBECONFIG")
+	} else {
+		mode = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+	config, err := clientcmd.BuildConfigFromFlags("", mode)
 	if err != nil {
 		panic(err.Error())
 	}

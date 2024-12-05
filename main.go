@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Application struct {
@@ -21,13 +23,30 @@ var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 func main() {
 	PrintLogo()
-	/*ticker := time.NewTicker(1 * time.Hour)
+
+	kubernetesFlag := flag.Bool("kubernetes", false, "Scan kubernetes apps")
+	externFlag := flag.Bool("extern", false, "Kubernetes Cluster is external")
+	dockerFlag := flag.Bool("docker", false, "Scan docker apps")
+	intervalFlag := flag.Int("interval", 0, "Interval in minutes to wait between actions")
+
+	flag.Parse()
+	ticker := time.NewTicker(1 * time.Minute)
+	if *intervalFlag > 0 {
+		ticker = time.NewTicker(time.Duration(*intervalFlag) * time.Minute)
+	} else {
+		fmt.Println("No interval specified, using default 1 Minute")
+	}
 	go func() {
 		for {
-			ScanKubeApps()
+			if *kubernetesFlag {
+				ScanKubeApps(*externFlag)
+			}
+			if *dockerFlag {
+				ScanDockerApps()
+			}
 			<-ticker.C
 		}
-	}()*/
+	}()
 
 	db.AutoMigrate(&Application{})
 	http.HandleFunc("/", ServeWebsite)

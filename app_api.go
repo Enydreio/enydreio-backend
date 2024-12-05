@@ -8,7 +8,7 @@ import (
 )
 
 func ServeWebsite(w http.ResponseWriter, r *http.Request) {
-	website := "dist"
+	website := "../enydreio-frontend/dist"
 	fallbackFile := "index.html"
 	requestedFile := filepath.Join(website, r.URL.Path)
 	_, err := os.Stat(requestedFile)
