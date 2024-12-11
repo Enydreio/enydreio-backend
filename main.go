@@ -23,7 +23,6 @@ var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 func main() {
 	PrintLogo()
-	fmt.Println(os.Getenv("DATABASE_DATA"))
 	kubernetesFlag := flag.Bool("kubernetes", false, "Scan kubernetes apps")
 	externFlag := flag.Bool("extern", false, "Kubernetes Cluster is external")
 	dockerFlag := flag.Bool("docker", false, "Scan docker apps")
