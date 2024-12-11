@@ -29,7 +29,7 @@ func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
 	}
 	return ""
 }
-func GetOutboundIP() net.IP {
+func GetOutboundIP() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		panic(err.Error())
@@ -43,7 +43,7 @@ func GetOutboundIP() net.IP {
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
-	return localAddr.IP
+	return localAddr.IP.String()
 }
 
 func ScanKubeApps(isExtern bool) {
@@ -121,6 +121,6 @@ func ScanDockerApps() {
 	}
 
 	for _, ctr := range containers {
-		SaveApp(ctr.Names[0], BuildURL("", string(GetOutboundIP()), int32(ctr.Ports[0].PublicPort), "/"))
+		SaveApp(ctr.Names[0], BuildURL("", GetOutboundIP(), int32(ctr.Ports[0].PublicPort), "/"))
 	}
 }
