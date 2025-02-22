@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"net"
 	"os"
@@ -47,13 +48,14 @@ func GetOutboundIP() string {
 }
 
 func ScanKubeApps(isExtern bool) {
-	var mode string
+	var config *rest.Config
+	var err error
 	if isExtern {
-		mode = os.Getenv("KUBECONFIG")
+		config, err = clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
 	} else {
-		mode = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+		config, err = rest.InClusterConfig()
 	}
-	config, err := clientcmd.BuildConfigFromFlags("", mode)
+
 	if err != nil {
 		panic(err.Error())
 	}
