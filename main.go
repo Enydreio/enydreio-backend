@@ -20,6 +20,7 @@ type Application struct {
 
 var dsn = fmt.Sprintf(os.Getenv("DATABASE_DATA"))
 var db, errDb = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+var initOptions string
 
 func main() {
 	PrintLogo()
@@ -27,7 +28,8 @@ func main() {
 	externFlag := flag.Bool("extern", false, "Kubernetes Cluster is external")
 	dockerFlag := flag.Bool("docker", false, "Scan docker apps")
 	intervalFlag := flag.Int("interval", 0, "Interval in minutes to wait between actions")
-
+	initOptionsFlag := flag.String("init-options", "init-options.json", "Initial Options which the frontend uses for authentication")
+	initOptions = *initOptionsFlag
 	flag.Parse()
 	ticker := time.NewTicker(1 * time.Minute)
 	if *intervalFlag > 0 {
@@ -49,6 +51,7 @@ func main() {
 
 	db.AutoMigrate(&Application{})
 	http.HandleFunc("/", ServeWebsite)
+	http.HandleFunc("/api/keycloak-init-options", GetInitOptions)
 	http.HandleFunc("/api/create-application", CreateApplication)
 	http.HandleFunc("/api/delete-application", DeleteApplication)
 	http.HandleFunc("/api/list-applications", ListApplications)

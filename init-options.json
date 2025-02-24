@@ -1,0 +1,6 @@
+{
+  "url": "http://keycloak:8080",
+  "realm": "test",
+  "clientId": "vue-app",
+  "onLoad": "login-required"
+}

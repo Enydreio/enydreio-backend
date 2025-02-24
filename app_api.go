@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,6 +20,17 @@ func ServeWebsite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, requestedFile)
+}
+func GetInitOptions(w http.ResponseWriter, r *http.Request) {
+	content, err := ioutil.ReadFile(initOptions)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error reading file: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(content)
 }
 func CreateApplication(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
