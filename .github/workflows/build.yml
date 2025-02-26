@@ -22,7 +22,7 @@ jobs:
       run: go build -v .
     
     - name: Upload binary to release
-      uses: svenstaro/upload-release-action@v2.9
+      uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file_glob: true
