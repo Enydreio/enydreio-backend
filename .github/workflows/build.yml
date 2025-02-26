@@ -21,8 +21,10 @@ jobs:
     - name: Build
       run: go build -v .
     
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: Upload binary to release
+      uses: svenstaro/upload-release-action@v2.9
       with:
-        name: enydreio-backend
-        path: enydreio-backend 
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file_glob: true
+        overwrite: true
+        prerelease: true
