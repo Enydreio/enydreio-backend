@@ -28,3 +28,4 @@ jobs:
         file_glob: true
         overwrite: true
         prerelease: true
+        file: enydreio-backend
