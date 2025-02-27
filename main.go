@@ -29,6 +29,7 @@ func main() {
 	dockerFlag := flag.Bool("docker", false, "Scan docker apps")
 	intervalFlag := flag.Int("interval", 0, "Interval in minutes to wait between actions")
 	initOptionsFlag := flag.String("init-options", "init-options.json", "Initial Options which the frontend uses for authentication")
+	portFlag := flag.Int("port", 8080, "Network port the application will run on")
 	initOptions = *initOptionsFlag
 	flag.Parse()
 	ticker := time.NewTicker(1 * time.Minute)
@@ -57,7 +58,7 @@ func main() {
 	http.HandleFunc("/api/list-applications", ListApplications)
 	http.HandleFunc("/api/edit-application", EditApplication)
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(fmt.Sprint(":", *portFlag), nil)
 	if err != nil || errDb != nil {
 		return
 	}
