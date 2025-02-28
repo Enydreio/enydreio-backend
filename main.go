@@ -14,6 +14,7 @@ type Application struct {
 	gorm.Model
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Category    string `json:"category"`
 	Url         string `json:"url"`
 	Logo        string `json:"logo"`
 }

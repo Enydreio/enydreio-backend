@@ -90,24 +90,39 @@ func ScanKubeApps(isExtern bool) {
 	}
 }
 func SaveApp(serviceName string, serviceURL string) {
-	var existingApp Application
-	result := db.Where("name = ?", serviceName).First(&existingApp)
-	if result.Error == nil {
-		if existingApp.Url != serviceURL {
-			existingApp.Url = serviceURL
-			db.Save(&existingApp)
+	// First check if an app with this name already exists
+	var existingAppByName Application
+	resultByName := db.Where("name = ?", serviceName).First(&existingAppByName)
+
+	if resultByName.Error == nil {
+		// App with this name exists, update URL if changed
+		if existingAppByName.Url != serviceURL {
+			existingAppByName.Url = serviceURL
+			db.Save(&existingAppByName)
 			fmt.Printf("Service %s updated in the database successfully\n", serviceName)
 		}
 	} else {
-		app := Application{
-			Name: serviceName,
-			Url:  serviceURL,
-		}
-		result := db.Create(&app)
-		if result.Error != nil {
-			fmt.Printf("Failed to save service %s to the database: %v\n", serviceName, result.Error)
+		// App with this name doesn't exist, check if URL exists
+		var existingAppByURL Application
+		resultByURL := db.Where("url = ?", serviceURL).First(&existingAppByURL)
+
+		if resultByURL.Error == nil {
+			// App with this URL exists but name was changed, update the name
+			existingAppByURL.Name = serviceName
+			db.Save(&existingAppByURL)
+			fmt.Printf("Service name updated from %s to %s in the database\n", existingAppByURL.Name, serviceName)
 		} else {
-			fmt.Printf("Service %s saved to the database successfully\n", serviceName)
+			// No app with this name or URL exists, create new
+			app := Application{
+				Name: serviceName,
+				Url:  serviceURL,
+			}
+			result := db.Create(&app)
+			if result.Error != nil {
+				fmt.Printf("Failed to save service %s to the database: %v\n", serviceName, result.Error)
+			} else {
+				fmt.Printf("Service %s saved to the database successfully\n", serviceName)
+			}
 		}
 	}
 }
