@@ -31,20 +31,14 @@ func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
 	return ""
 }
 func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+	host := "host.docker.internal"
+
+	addrs, err := net.LookupHost(host)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer func(conn net.Conn) {
-		err := conn.Close()
-		if err != nil {
-			panic(err.Error())
-		}
-	}(conn)
 
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP.String()
+	return addrs[0]
 }
 
 func ScanKubeApps(isExtern bool) {
