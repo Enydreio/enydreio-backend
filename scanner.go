@@ -30,16 +30,6 @@ func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
 	}
 	return ""
 }
-func GetOutboundIP() string {
-	host := "host.docker.internal"
-
-	addrs, err := net.LookupHost(host)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return addrs[0]
-}
 
 func ScanKubeApps(isExtern bool) {
 	var config *rest.Config
@@ -132,6 +122,6 @@ func ScanDockerApps() {
 	}
 
 	for _, ctr := range containers {
-		SaveApp(ctr.Names[0], BuildURL("", GetOutboundIP(), int32(ctr.Ports[0].PublicPort), "/"))
+		SaveApp(ctr.Names[0], BuildURL("", os.Getenv("HOST_IP"), int32(ctr.Ports[0].PublicPort), "/"))
 	}
 }
