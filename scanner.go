@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -34,11 +33,17 @@ func DetermineProtocol(serviceURL string) string {
 	if err == nil {
 		return "https://"
 	}
-	httpURL := "http://" + serviceURL
-	_, err = client.Get(httpURL)
-	if err == nil {
+
+	if err != nil && strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
 		return "http://"
 	}
+
+	httpURL := "http://" + serviceURL
+	_, httpErr := client.Get(httpURL)
+	if httpErr == nil {
+		return "http://"
+	}
+
 	return ""
 }
 func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
