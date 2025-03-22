@@ -10,16 +10,40 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
+	"time"
 )
 
 func BuildURL(host string, ip string, port int32, path string) string {
-	url := "https://" + ip
+	baseURL := ip
 	if host != "" {
-		url = "https://" + host
+		baseURL = host
 	}
-	url += fmt.Sprintf(":%d%s", port, path)
-	return url
+	return fmt.Sprintf("%s:%d%s", baseURL, port, path)
+}
+func DetermineProtocol(serviceURL string) string {
+	httpsURL := "https://" + serviceURL
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	_, err := client.Get(httpsURL)
+	if err == nil {
+		return "https://"
+	}
+	httpURL := "http://" + serviceURL
+	_, err = client.Get(httpURL)
+	if err == nil {
+		return "http://"
+	}
+	if u, err := url.Parse("ftp://" + serviceURL); err == nil && u.Scheme == "ftp" {
+		return "ftp://"
+	}
+
+	return ""
 }
 func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
 	for _, loadBalancer := range ingressStatus {
@@ -120,7 +144,24 @@ func ScanDockerApps() {
 		panic(err)
 	}
 
+	hostIP := os.Getenv("HOST_IP")
+	if hostIP == "" {
+		fmt.Println("Warning: HOST_IP environment variable not set")
+		return
+	}
+
 	for _, ctr := range containers {
-		SaveApp(ctr.Names[0], BuildURL("", os.Getenv("HOST_IP"), int32(ctr.Ports[0].PublicPort), "/"))
+		if len(ctr.Ports) > 0 {
+			baseURL := BuildURL("", hostIP, int32(ctr.Ports[0].PublicPort), "/")
+			protocol := DetermineProtocol(baseURL)
+			serviceURL := protocol + baseURL
+
+			name := ctr.Names[0]
+			if strings.HasPrefix(name, "/") {
+				name = name[1:]
+			}
+
+			SaveApp(name, serviceURL)
+		}
 	}
 }
