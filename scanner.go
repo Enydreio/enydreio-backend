@@ -91,45 +91,51 @@ func ScanKubeApps(isExtern bool) {
 				servicePort := backend.Port.Number
 
 				serviceURL := BuildURL(host, ip, servicePort, path.Path)
-				SaveApp(serviceName, serviceURL)
+				SaveAppWithoutDetails(serviceName, serviceURL)
 			}
 
 		}
 	}
 }
-func SaveApp(serviceName string, serviceURL string) {
+func SaveAppWithoutDetails(name string, url string) {
+	SaveApp(name, "", "", url, "")
+}
+func SaveApp(name string, description string, category string, url string, logo string) {
 	// First check if an app with this name already exists
 	var existingAppByName Application
-	resultByName := db.Where("name = ?", serviceName).First(&existingAppByName)
+	resultByName := db.Where("name = ?", name).First(&existingAppByName)
 
 	if resultByName.Error == nil {
 		// App with this name exists, update URL if changed
-		if existingAppByName.Url != serviceURL {
-			existingAppByName.Url = serviceURL
+		if existingAppByName.Url != url {
+			existingAppByName.Url = url
 			db.Save(&existingAppByName)
-			fmt.Printf("Service %s updated in the database successfully\n", serviceName)
+			fmt.Printf("Service %s updated in the database successfully\n", name)
 		}
 	} else {
 		// App with this name doesn't exist, check if URL exists
 		var existingAppByURL Application
-		resultByURL := db.Where("url = ?", serviceURL).First(&existingAppByURL)
+		resultByURL := db.Where("url = ?", url).First(&existingAppByURL)
 
 		if resultByURL.Error == nil {
 			// App with this URL exists but name was changed, update the name
-			existingAppByURL.Name = serviceName
+			existingAppByURL.Name = name
 			db.Save(&existingAppByURL)
-			fmt.Printf("Service name updated from %s to %s in the database\n", existingAppByURL.Name, serviceName)
+			fmt.Printf("Service name updated from %s to %s in the database\n", existingAppByURL.Name, name)
 		} else {
 			// No app with this name or URL exists, create new
 			app := Application{
-				Name: serviceName,
-				Url:  serviceURL,
+				Name:        name,
+				Description: description,
+				Category:    category,
+				Url:         url,
+				Logo:        logo,
 			}
 			result := db.Create(&app)
 			if result.Error != nil {
-				fmt.Printf("Failed to save service %s to the database: %v\n", serviceName, result.Error)
+				fmt.Printf("Failed to save service %s to the database: %v\n", name, result.Error)
 			} else {
-				fmt.Printf("Service %s saved to the database successfully\n", serviceName)
+				fmt.Printf("Service %s saved to the database successfully\n", name)
 			}
 		}
 	}
@@ -153,20 +159,29 @@ func ScanDockerApps() {
 
 	for _, ctr := range containers {
 		if len(ctr.Ports) > 0 {
-			baseURL := BuildURL("", hostIP, int32(ctr.Ports[0].PublicPort), "/")
-			protocol := DetermineProtocol(baseURL)
-			if protocol == "" {
-				fmt.Printf("Skipping container %s: no supported protocol found\n", ctr.Names[0])
-				continue
+			labels := ctr.Labels
+			url := labels["enydreio.url"]
+			if url == "" {
+				baseURL := BuildURL("", hostIP, int32(ctr.Ports[0].PublicPort), "/")
+				protocol := DetermineProtocol(baseURL)
+				if protocol == "" {
+					fmt.Printf("Skipping container %s: no supported protocol found\n", ctr.Names[0])
+					continue
+				}
+				url = protocol + baseURL
 			}
-			serviceURL := protocol + baseURL
 
-			name := ctr.Names[0]
-			if strings.HasPrefix(name, "/") {
-				name = name[1:]
+			name := labels["enydreio.name"]
+			if name == "" {
+				name = ctr.Names[0]
+				if strings.HasPrefix(name, "/") {
+					name = name[1:]
+				}
 			}
-
-			SaveApp(name, serviceURL)
+			description := labels["enydreio.description"]
+			category := labels["enydreio.category"]
+			logo := labels["enydreio.logo"]
+			SaveApp(name, description, category, url, logo)
 		}
 	}
 }
