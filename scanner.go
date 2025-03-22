@@ -39,10 +39,6 @@ func DetermineProtocol(serviceURL string) string {
 	if err == nil {
 		return "http://"
 	}
-	if u, err := url.Parse("ftp://" + serviceURL); err == nil && u.Scheme == "ftp" {
-		return "ftp://"
-	}
-
 	return ""
 }
 func GetLoadBalancerIP(ingressStatus []v1.IngressLoadBalancerIngress) string {
