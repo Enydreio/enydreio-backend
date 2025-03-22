@@ -154,6 +154,10 @@ func ScanDockerApps() {
 		if len(ctr.Ports) > 0 {
 			baseURL := BuildURL("", hostIP, int32(ctr.Ports[0].PublicPort), "/")
 			protocol := DetermineProtocol(baseURL)
+			if protocol == "" {
+				fmt.Printf("Skipping container %s: no supported protocol found\n", ctr.Names[0])
+				continue
+			}
 			serviceURL := protocol + baseURL
 
 			name := ctr.Names[0]
